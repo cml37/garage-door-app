@@ -9,7 +9,7 @@ Edit config.yaml and change the `myQUsername` and `myQPassword`
 
 ## To Run Application
 From the root directory of the project:
-`java -jar build\libs\GarageDoor-all.jar`
+`java -jar build\libs\garage-door-app-all.jar`
 
 ## Alternative Running Method
 You can actually double click the JAR from, for example, Microsoft Windows!
