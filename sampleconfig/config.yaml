@@ -1,0 +1,7 @@
+---
+ircNickname: "garage"
+ircServerAddress: "chatpi"
+ircChannel: "#pircbot"
+ircDefaultSenderNickname: "garage"
+myQUsername: "email@address.com"
+myQPassword: "password"

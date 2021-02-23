@@ -1,0 +1,19 @@
+# Created by .ignore support plugin (hsz.mobi)
+syntax: glob
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+build/
+
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# Gradle files
+.gradle/
+install/GarageDoor.jar
+install/Windows/GarageDoor-Win32-0.1.0.exe

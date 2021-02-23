@@ -1,0 +1,47 @@
+JFDML JFormDesigner: "5.1.2.0.134" Java: "1.8.0_131" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormWindow( "javax.swing.JFrame", new FormLayoutManager( class com.jgoodies.forms.layout.FormLayout ) {
+			"$columnSpecs": "center:default:grow"
+			"$rowSpecs": "fill:default, linegap, default, linegap, default"
+		} ) {
+			name: "this"
+			"minimumSize": new java.awt.Dimension( 510, 220 )
+			"$sizePolicy": 1
+			"title": "Garage Door Controller"
+			"iconImage": new com.jformdesigner.model.SwingIcon( 0, "/com/lenderman/garage/images/garage-icon-black.png" )
+			add( new FormComponent( "javax.swing.JButton" ) {
+				name: "buttonUpdateStatus"
+				"text": "Update Status"
+				auxiliary() {
+					"JavaCodeGenerator.variableModifiers": 4
+				}
+			}, new FormLayoutConstraints( class com.jgoodies.forms.layout.CellConstraints ) {
+				"gridX": 1
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.jformdesigner.runtime.NullLayout ) ) {
+				name: "panel2"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label1"
+					"text": "Last Updated:"
+				}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) )
+			}, new FormLayoutConstraints( class com.jgoodies.forms.layout.CellConstraints ) {
+				"gridY": 3
+			} )
+			add( new FormComponent( "javax.swing.JLabel" ) {
+				name: "labelLastUpdatedDate"
+				"text": "Date"
+				auxiliary() {
+					"JavaCodeGenerator.variableModifiers": 4
+				}
+			}, new FormLayoutConstraints( class com.jgoodies.forms.layout.CellConstraints ) {
+				"gridY": 5
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 0 )
+			"size": new java.awt.Dimension( 510, 220 )
+		} )
+	}
+}

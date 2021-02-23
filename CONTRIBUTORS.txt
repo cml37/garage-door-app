@@ -1,0 +1,2 @@
+Chris Lenderman:
+    Designed and wrote the program.

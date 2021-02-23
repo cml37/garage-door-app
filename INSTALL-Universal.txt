@@ -1,0 +1,6 @@
+Universal Installation (Including Linux)
+
+Download GarageDoor-0.1.0.tar.gz to your hard drive. Untar the file. 
+To launch GarageDoor, issue the command 'java -jar GarageDoor.jar'
+Either the GarageDoor system tray icon will appear (Windows and Mac) 
+or the GarageDoor form will be displayed (Linux and all other OSes). 

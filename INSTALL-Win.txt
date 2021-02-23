@@ -1,0 +1,5 @@
+Windows
+
+Download GarageDoor-Win32-0.1.0.exe to your hard drive. Double-click to launch
+GarageDoor. The GarageDoor status icon will be installed in your system tray's
+notification option.
