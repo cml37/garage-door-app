@@ -15,4 +15,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'GarageDoor'
+rootProject.name = 'garage-door-app'
