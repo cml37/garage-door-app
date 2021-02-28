@@ -25,6 +25,15 @@ public class GarageDoorActionCallbackRegistry
     }
 
     /**
+     * Unregisters a callback
+     */
+    public static void unregisterActionCallback(
+            GarageDoorActionCallback callback)
+    {
+        garageDoorActionCallbacks.remove(callback);
+    }
+
+    /**
      * Notifies all callback
      */
     public static void notifyGarageDoorActionStatusChange(String serialNumber)

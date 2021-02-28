@@ -17,3 +17,6 @@ build/
 .gradle/
 install/GarageDoor.jar
 install/Windows/GarageDoor-Win32-0.1.0.exe
+
+# Personal config files
+config.yaml

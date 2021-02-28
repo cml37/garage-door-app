@@ -8,7 +8,6 @@ package com.lenderman.garage.utils;
  *
  * @author Chris Lenderman
  */
-
 public class DurationUtils
 {
     /**

@@ -15,6 +15,9 @@ import org.apache.http.message.BasicHeader;
  */
 public class GarageDoorConstants
 {
+    /** Configuration file name */
+    public static final String CONFIG_FILE_NAME = "config.yaml";
+
     /** icon used for system tray, etc. */
     public static final ImageIcon GARAGE_ICON_SMALL = new ImageIcon(
             GarageDoorConstants.class.getClassLoader().getResource(

@@ -1,4 +1,5 @@
 ---
+ircEnabled: true
 ircNickname: "garage"
 ircServerAddress: "chatpi"
 ircChannel: "#pircbot"

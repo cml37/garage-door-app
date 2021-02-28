@@ -7,6 +7,7 @@ import java.awt.Font;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import org.apache.log4j.Logger;
+import com.lenderman.garage.config.GarageDoorConfigHolder;
 import com.lenderman.garage.controller.GarageDoorBotController;
 import com.lenderman.garage.controller.GarageDoorGuiController;
 import com.lenderman.garage.utils.OsUtils;
@@ -61,13 +62,10 @@ public class GarageDoorMain
         }
 
         new GarageDoorGuiController();
-        try
+
+        if (GarageDoorConfigHolder.garageDoorConfig.isIrcEnabled())
         {
             new GarageDoorBotController();
-        }
-        catch (Exception ex)
-        {
-            log.error("Could not connect to IRC server: ", ex);
         }
     }
 }

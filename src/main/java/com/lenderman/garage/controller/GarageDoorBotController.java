@@ -21,6 +21,7 @@ import com.lenderman.garage.callback.GarageDoorActionCallback;
 import com.lenderman.garage.callback.GarageDoorActionCallbackRegistry;
 import com.lenderman.garage.config.GarageDoorConfigHolder;
 import com.lenderman.garage.types.OpenerObject;
+import com.lenderman.garage.utils.ExponentialBackoffService;
 import com.lenderman.garage.utils.MetadataUtils;
 
 /**
@@ -38,6 +39,10 @@ public class GarageDoorBotController extends PircBot
     private final ExecutorService exService = Executors
             .newSingleThreadExecutor();
 
+    /** Single threaded executor service used principally to initialize IRC */
+    private final ExecutorService ircInitializer = Executors
+            .newSingleThreadExecutor();
+
     /**
      * Maps to keep track of channel and sender that maps to a given serial
      * number
@@ -48,13 +53,53 @@ public class GarageDoorBotController extends PircBot
     /**
      * Constructor
      */
-    public GarageDoorBotController() throws Exception
+    public GarageDoorBotController()
     {
-        GarageDoorActionCallbackRegistry.registerActionCallback(this);
-        this.setName(GarageDoorConfigHolder.garageDoorConfig.getIrcNickname());
-        startIdentServer();
-        connect(GarageDoorConfigHolder.garageDoorConfig.getIrcServerAddress());
-        joinChannel(GarageDoorConfigHolder.garageDoorConfig.getIrcChannel());
+        initialize();
+    }
+
+    /**
+     * Initializes the Controller
+     */
+    private void initialize()
+    {
+        ircInitializer.submit(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                GarageDoorActionCallbackRegistry
+                        .unregisterActionCallback(GarageDoorBotController.this);
+
+                ExponentialBackoffService backoffService = new ExponentialBackoffService();
+                while (backoffService.shouldRetry())
+                {
+                    try
+                    {
+                        GarageDoorBotController.this
+                                .setName(GarageDoorConfigHolder.garageDoorConfig
+                                        .getIrcNickname());
+                        startIdentServer();
+                        connect(GarageDoorConfigHolder.garageDoorConfig
+                                .getIrcServerAddress());
+                        joinChannel(GarageDoorConfigHolder.garageDoorConfig
+                                .getIrcChannel());
+                        GarageDoorActionCallbackRegistry.registerActionCallback(
+                                GarageDoorBotController.this);
+                        backoffService.doNotRetry();
+                    }
+                    catch (Exception ex)
+                    {
+                        backoffService.errorOccured();
+                        log.error("Could not connect to IRC server: ", ex);
+                        if (!backoffService.shouldRetry())
+                        {
+                            backoffService.reset();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -124,7 +169,8 @@ public class GarageDoorBotController extends PircBot
             }
             else if (command.equals("status"))
             {
-                sendStatus(name, channel, sender);
+                sendStatus(MetadataUtils.getSerialNumberForName(name), channel,
+                        sender);
                 return;
             }
         }
@@ -140,9 +186,8 @@ public class GarageDoorBotController extends PircBot
     /**
      * Sends the current status
      */
-    private void sendStatus(String name, String channel, String sender)
+    private void sendStatus(String serialNumber, String channel, String sender)
     {
-        String serialNumber = MetadataUtils.getSerialNumberForName(name);
         try
         {
             ArrayList<OpenerObject> openers = MyQApiController
@@ -168,8 +213,10 @@ public class GarageDoorBotController extends PircBot
         {
             // Do nothing
         }
-        sendMessage(channel,
-                sender + ": current status is not available for " + name);
+
+        sendMessage(channel, sender
+                + ": current status is not available for opener with serial number "
+                + serialNumber);
     }
 
     /**
@@ -225,6 +272,12 @@ public class GarageDoorBotController extends PircBot
     public void onGarageDoorActionChange(String serialNumber)
     {
         schedulePeriodicUpdate(serialNumber);
+    }
+
+    /** @inheritDoc */
+    public void onDisconnect()
+    {
+        this.initialize();
     }
 
 }
