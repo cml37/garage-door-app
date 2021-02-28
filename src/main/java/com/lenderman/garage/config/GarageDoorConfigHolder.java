@@ -36,7 +36,8 @@ public class GarageDoorConfigHolder
         catch (Exception ex)
         {
             log.error(
-                    "Error loading configuration file, did you create a + " GarageDoorConstants.CONFIG_FILE_NAME + " file?",
+                    "Error loading configuration file, did you create a "
+                            + GarageDoorConstants.CONFIG_FILE_NAME + " file?",
                     ex);
             System.exit(-1);
             return null;
