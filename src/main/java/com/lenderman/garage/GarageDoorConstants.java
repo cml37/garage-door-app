@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import com.lenderman.garage.types.AccessTokenResponse;
 
 /**
  * Constants used by the application
@@ -34,13 +35,20 @@ public class GarageDoorConstants
      */
     public static final int STATUS_UPDATE_INTERVALS_TIME_PERIOD_DELAY_MS = 3000;
 
-    /** Application ID */
-    public static String APPLICATION_ID = "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu";
+    /** OAuth related fields */
+    public static final String CLIENT_SECRET = "VUQ0RFhuS3lQV3EyNUJTdw==";
+    public static final String CLIENT_ID = "IOS_CGI_MYQ";
+    public static final String REDIRECT_URI = "com.myqops://ios";
+    public static final String SCOPE = "MyQ_Residential offline_access";
 
     /** API URLs */
-    private static String BASE_URL = "https://api.myqdevice.com";
-    public static String GET_ACCOUNT_URL = BASE_URL + "/api/v5/accounts";
-    public static String POST_LOGIN_URL = BASE_URL + "/api/v5/Login";
+    private static final String BASE_URL = "https://api.myqdevice.com";
+    public static final String GET_ACCOUNT_URL = BASE_URL + "/api/v5/accounts";
+    public static final String LOGIN_BASE_URL = "https://partner-identity.myq-cloud.com";
+    public static final String LOGIN_AUTHORIZE_URL = LOGIN_BASE_URL
+            + "/connect/authorize";
+    public static final String LOGIN_TOKEN_URL = LOGIN_BASE_URL
+            + "/connect/token";
 
     public static String generateGetDevicesUrl(String myQAccountId)
     {
@@ -57,19 +65,20 @@ public class GarageDoorConstants
     /**
      * Generates headers for use by the API
      *
-     * @param String securityToken
+     * @param AccessTokenResponse tokenResponse
      * @return ArrayList<Header>
      */
-    public static ArrayList<Header> generateHeaders(String securityToken)
+    public static ArrayList<Header> generateHeaders(
+            AccessTokenResponse tokenResponse)
     {
         ArrayList<Header> headers = new ArrayList<Header>();
         headers.add(new BasicHeader("Content-Type", "application/json"));
-        headers.add(new BasicHeader("MyQApplicationId",
-                GarageDoorConstants.APPLICATION_ID));
 
-        if (securityToken != null)
+        if (tokenResponse != null)
         {
-            headers.add(new BasicHeader("SecurityToken", securityToken));
+            headers.add(new BasicHeader("Authorization",
+                    tokenResponse.getTokenType() + " "
+                            + tokenResponse.getAccessToken()));
         }
 
         return headers;

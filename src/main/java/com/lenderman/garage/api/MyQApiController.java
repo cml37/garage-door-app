@@ -5,6 +5,7 @@ package com.lenderman.garage.api;
 
 import java.util.ArrayList;
 import com.lenderman.garage.callback.GarageDoorActionCallbackRegistry;
+import com.lenderman.garage.types.AccessTokenResponse;
 import com.lenderman.garage.types.OpenerCommand;
 import com.lenderman.garage.types.OpenerObject;
 import com.lenderman.garage.types.OpenerState;
@@ -22,10 +23,10 @@ public class MyQApiController
     public static ArrayList<OpenerObject> getGarageDoorDetails()
             throws Exception
     {
-        String token = MyQApi.login();
-        if (token != null)
+        AccessTokenResponse accessToken = MyQApi.login();
+        if (accessToken != null)
         {
-            return MyQApi.getDetails(token);
+            return MyQApi.getDetails(accessToken);
         }
         return new ArrayList<OpenerObject>();
     }
