@@ -4,7 +4,7 @@ rm -rf GarageDoor
 
 #Gather the files
 mkdir GarageDoor
-cp ../GarageDoor.jar GarageDoor
+cp ../../build/libs/garage-door-app-all.jar GarageDoor
 cp ../../license.txt GarageDoor
 cp ../../CONTRIBUTORS.txt GarageDoor
 cp ../../CHANGES.txt GarageDoor
