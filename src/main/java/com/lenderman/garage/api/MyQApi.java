@@ -73,8 +73,8 @@ public class MyQApi
             log.debug("Device Account API request success.  JSON response: "
                     + object.toString());
 
-            JSONArray items = object.getJSONArray("Items");
-            return items.getJSONObject(0).getString("Id");
+            JSONArray accounts = object.getJSONArray("accounts");
+            return accounts.getJSONObject(0).getString("id");
         }
         else
         {
@@ -152,8 +152,9 @@ public class MyQApi
             OpenerCommand command, AccessTokenResponse accessToken)
             throws Exception
     {
-        HttpPut put = new HttpPut(GarageDoorConstants
-                .generatePutDeviceUrl(getAccountId(accessToken), serialNumber));
+        HttpPut put = new HttpPut(
+                GarageDoorConstants.generatePutDeviceCommandUrl(
+                        getAccountId(accessToken), serialNumber, command));
         ArrayList<Header> headers = GarageDoorConstants
                 .generateHeaders(accessToken);
         headers.stream().forEach(header -> put.addHeader(header));
@@ -163,8 +164,7 @@ public class MyQApi
 
         HttpResponse response = client.execute(put);
 
-        if (response.getStatusLine()
-                .getStatusCode() == HttpStatus.SC_NO_CONTENT)
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_ACCEPTED)
         {
             return true;
         }

@@ -8,6 +8,7 @@ import javax.swing.ImageIcon;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import com.lenderman.garage.types.AccessTokenResponse;
+import com.lenderman.garage.types.OpenerCommand;
 
 /**
  * Constants used by the application
@@ -42,24 +43,41 @@ public class GarageDoorConstants
     public static final String SCOPE = "MyQ_Residential offline_access";
 
     /** API URLs */
-    private static final String BASE_URL = "https://api.myqdevice.com";
-    public static final String GET_ACCOUNT_URL = BASE_URL + "/api/v5/accounts";
+    private static final String DEVICES_BASE_URL = "https://devices.myq-cloud.com";
+    private static final String DEVICES_GARAGE_DOOR_BASE_URL = "https://account-devices-gdo.myq-cloud.com/";
+    public static final String GET_ACCOUNT_URL = "https://accounts.myq-cloud.com/api/v6.0/accounts";
     public static final String LOGIN_BASE_URL = "https://partner-identity.myq-cloud.com";
     public static final String LOGIN_AUTHORIZE_URL = LOGIN_BASE_URL
             + "/connect/authorize";
     public static final String LOGIN_TOKEN_URL = LOGIN_BASE_URL
             + "/connect/token";
 
+    /**
+     * Generates a GET devices URL to get a list of devices
+     *
+     * @param String myQAccountId
+     * @return String
+     */
     public static String generateGetDevicesUrl(String myQAccountId)
     {
-        return BASE_URL + "/api/v5.1/Accounts/" + myQAccountId + "/Devices";
+        return DEVICES_BASE_URL + "/api/v5.2/Accounts/" + myQAccountId
+                + "/Devices";
     }
 
-    public static String generatePutDeviceUrl(String myQAccountId,
-            String serialNumber)
+    /**
+     * Generates a PUT device URL to command a device
+     *
+     * @param String myQAccountId
+     * @param String serialNumber
+     * @param OpenerCommand command
+     * @return String
+     */
+    public static String generatePutDeviceCommandUrl(String myQAccountId,
+            String serialNumber, OpenerCommand command)
     {
-        return BASE_URL + "/api/v5.1/Accounts/" + myQAccountId + "/Devices/"
-                + serialNumber + "/actions";
+        return DEVICES_GARAGE_DOOR_BASE_URL + "/api/v5.2/Accounts/"
+                + myQAccountId + "/door_openers/" + serialNumber + "/"
+                + command.getCommand();
     }
 
     /**
@@ -72,7 +90,7 @@ public class GarageDoorConstants
             AccessTokenResponse tokenResponse)
     {
         ArrayList<Header> headers = new ArrayList<Header>();
-        headers.add(new BasicHeader("Content-Type", "application/json"));
+        headers.add(new BasicHeader("User-Agent", "null"));
 
         if (tokenResponse != null)
         {

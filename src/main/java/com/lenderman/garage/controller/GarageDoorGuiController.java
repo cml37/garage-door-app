@@ -254,8 +254,13 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
     {
         for (GarageDoorInstanceAndListenerHolder gdi : garageDoorInstances)
         {
-            Duration duration = new Interval(gdi.openerData.stateUpdatedTime,
-                    new DateTime().getMillis()).toDuration();
+            // In some cases the interface gives us back a state updated time in
+            // the future
+            long startInstant = gdi.openerData.stateUpdatedTime;
+            long endInstant = Math.max(startInstant,
+                    new DateTime().getMillis());
+            Duration duration = new Interval(startInstant, endInstant)
+                    .toDuration();
 
             gdi.instance.labelDuration.setText(DurationUtils
                     .getDurationPrettyPrint(duration.getStandardMinutes()));
