@@ -32,7 +32,7 @@ new FormModel {
 			} )
 			add( new FormComponent( "javax.swing.JLabel" ) {
 				name: "labelLastUpdatedDate"
-				"text": "Date"
+				"text": "Never"
 				auxiliary() {
 					"JavaCodeGenerator.variableModifiers": 4
 				}

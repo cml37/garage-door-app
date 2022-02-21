@@ -81,7 +81,7 @@ public class GarageDoorGuiFrame extends JFrame
         contentPane.add(panel2, CC.xy(1, 3));
 
         // ---- labelLastUpdatedDate ----
-        labelLastUpdatedDate.setText("Date");
+        labelLastUpdatedDate.setText("Never");
         contentPane.add(labelLastUpdatedDate, CC.xy(1, 5));
         setSize(510, 220);
         setLocationRelativeTo(getOwner());

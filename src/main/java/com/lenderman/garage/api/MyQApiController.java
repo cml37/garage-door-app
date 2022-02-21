@@ -5,6 +5,7 @@ package com.lenderman.garage.api;
 
 import java.util.ArrayList;
 import com.lenderman.garage.callback.GarageDoorActionCallbackRegistry;
+import com.lenderman.garage.callback.GarageDoorDetailsCallback;
 import com.lenderman.garage.types.AccessTokenResponse;
 import com.lenderman.garage.types.OpenerCommand;
 import com.lenderman.garage.types.OpenerObject;
@@ -28,7 +29,32 @@ public class MyQApiController
         {
             return MyQApi.getDetails(accessToken);
         }
-        return new ArrayList<OpenerObject>();
+        return null;
+    }
+
+    /**
+     * Retrieves garage door details in a callback, non blocking fashion
+     */
+    public static void getGarageDoorDetails(GarageDoorDetailsCallback callback)
+    {
+        Runnable runnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ArrayList<OpenerObject> objects = null;
+                try
+                {
+                    objects = getGarageDoorDetails();
+                }
+                catch (Exception e)
+                {
+                    // Do nothing
+                }
+                callback.onGarageDoorDetailsAvailable(objects);
+            }
+        };
+        new Thread(runnable).start();
     }
 
     /**

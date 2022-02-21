@@ -30,6 +30,7 @@ import com.lenderman.garage.GarageDoorConstants;
 import com.lenderman.garage.api.MyQApiController;
 import com.lenderman.garage.callback.GarageDoorActionCallback;
 import com.lenderman.garage.callback.GarageDoorActionCallbackRegistry;
+import com.lenderman.garage.callback.GarageDoorDetailsCallback;
 import com.lenderman.garage.jfd.GarageDoorGuiFrame;
 import com.lenderman.garage.jfd.GarageDoorInstance;
 import com.lenderman.garage.types.OpenerObject;
@@ -45,9 +46,8 @@ import com.lenderman.garage.utils.TrayIconWrapper;
  * @author Chris Lenderman
  */
 @SuppressWarnings("serial")
-// TODO need to look at threading model. We are doing API work on AWT thread
 public class GarageDoorGuiController extends GarageDoorGuiFrame
-        implements GarageDoorActionCallback
+        implements GarageDoorActionCallback, GarageDoorDetailsCallback
 {
     /** Class logger */
     private static Logger log = Logger.getLogger(GarageDoorGuiController.class);
@@ -129,21 +129,14 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
             setVisible(true);
         }
 
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                updateGuiOpenerStates();
-            }
-        });
+        requestGuiOpenerStateUpdate();
 
         addWindowListener(new WindowAdapter()
         {
             @Override
             public void windowActivated(WindowEvent arg0)
             {
-                updateGuiOpenerStates();
+                requestGuiOpenerStateUpdate();
 
                 if (durationUpdateTimerTask != null)
                 {
@@ -155,15 +148,8 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
                     @Override
                     public void run()
                     {
-                        SwingUtilities.invokeLater(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                log.debug("Duration update time fired");
-                                updateDuration();
-                            }
-                        });
+                        log.debug("Duration update time fired");
+                        updateDuration();
                     }
                 };
 
@@ -183,67 +169,11 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
     }
 
     /**
-     * Updates opener states on GUI
+     * Requests an update to the current opener state
      */
-    private void updateGuiOpenerStates()
+    private void requestGuiOpenerStateUpdate()
     {
-        try
-        {
-            ArrayList<OpenerObject> openers = MyQApiController
-                    .getGarageDoorDetails();
-
-            if (openers.size() != garageDoorInstances.size())
-            {
-                log.debug(
-                        "Change detected in number of actual openers vs. number of displayed openers");
-                garageDoorInstances.clear();
-
-                FormLayout fLayout = (FormLayout) getContentPane().getLayout();
-                while (fLayout.getRowCount() > 5)
-                {
-                    fLayout.removeRow(1);
-                }
-
-                for (int index = 0; index < openers.size(); index++)
-                {
-                    fLayout.insertRow(1, FormFactory.RELATED_GAP_ROWSPEC);
-                    fLayout.insertRow(1, FormFactory.DEFAULT_ROWSPEC);
-                    Container contentPane = getContentPane();
-
-                    GarageDoorInstanceAndListenerHolder holder = new GarageDoorInstanceAndListenerHolder();
-                    holder.instance = new GarageDoorInstance();
-                    holder.buttonListener = new ButtonChangeListener();
-                    holder.instance.buttonChange
-                            .addActionListener(holder.buttonListener);
-                    garageDoorInstances.add(holder);
-
-                    contentPane.add(holder.instance, CC.xy(1, 1));
-                }
-                getContentPane().setLayout(fLayout);
-            }
-
-            String toolTip = new String();
-            for (int index = 0; index < openers.size(); index++)
-            {
-                GarageDoorInstanceAndListenerHolder gdi = garageDoorInstances
-                        .get(index);
-                gdi.openerData = openers.get(index);
-
-                gdi.instance.labelName.setText(gdi.openerData.name);
-                gdi.instance.labelStatus
-                        .setText(gdi.openerData.state.toString());
-                gdi.buttonListener.setSerialNumber(gdi.openerData.serialNumber);
-                toolTip += (index > 0 ? " " : "") + gdi.openerData.name + ":"
-                        + gdi.openerData.state.toString();
-            }
-            this.labelLastUpdatedDate.setText(new Date().toString());
-            NotificationUtils.setTrayIconTipText(toolTip);
-            updateDuration();
-        }
-        catch (Exception ex)
-        {
-            log.error("Couldn't get opener states: " + ex);
-        }
+        MyQApiController.getGarageDoorDetails(this);
     }
 
     /**
@@ -252,19 +182,27 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
      */
     private void updateDuration()
     {
-        for (GarageDoorInstanceAndListenerHolder gdi : garageDoorInstances)
+        SwingUtilities.invokeLater(new Runnable()
         {
-            // In some cases the interface gives us back a state updated time in
-            // the future
-            long startInstant = gdi.openerData.stateUpdatedTime;
-            long endInstant = Math.max(startInstant,
-                    new DateTime().getMillis());
-            Duration duration = new Interval(startInstant, endInstant)
-                    .toDuration();
+            @Override
+            public void run()
+            {
+                for (GarageDoorInstanceAndListenerHolder gdi : garageDoorInstances)
+                {
+                    // In some cases the interface gives us back a state updated
+                    // time in the future
+                    long startInstant = gdi.openerData.stateUpdatedTime;
+                    long endInstant = Math.max(startInstant,
+                            new DateTime().getMillis());
+                    Duration duration = new Interval(startInstant, endInstant)
+                            .toDuration();
 
-            gdi.instance.labelDuration.setText(DurationUtils
-                    .getDurationPrettyPrint(duration.getStandardMinutes()));
-        }
+                    gdi.instance.labelDuration
+                            .setText(DurationUtils.getDurationPrettyPrint(
+                                    duration.getStandardMinutes()));
+                }
+            }
+        });
     }
 
     /**
@@ -284,22 +222,14 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
             @Override
             public void run()
             {
-                SwingUtilities.invokeLater(new Runnable()
+                log.debug("Status Update Timer Fired");
+                requestGuiOpenerStateUpdate();
+                count++;
+                if (count == (GarageDoorConstants.STATUS_UPDATE_INTERVALS_TO_EXECUTE
+                        - 1))
                 {
-                    /** @inheritDoc */
-                    @Override
-                    public void run()
-                    {
-                        log.debug("Status Update Timer Fired");
-                        updateGuiOpenerStates();
-                        count++;
-                        if (count == (GarageDoorConstants.STATUS_UPDATE_INTERVALS_TO_EXECUTE
-                                - 1))
-                        {
-                            cancel();
-                        }
-                    }
-                });
+                    cancel();
+                }
             }
         };
         statusUpdateTimer.scheduleAtFixedRate(statusUpdateTimerTask,
@@ -379,14 +309,7 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
                         @Override
                         public void run()
                         {
-                            SwingUtilities.invokeLater(new Runnable()
-                            {
-                                @Override
-                                public void run()
-                                {
-                                    updateGuiOpenerStates();
-                                }
-                            });
+                            requestGuiOpenerStateUpdate();
                         }
                     });
                 }
@@ -399,5 +322,75 @@ public class GarageDoorGuiController extends GarageDoorGuiFrame
     public void onGarageDoorActionChange(String serialNumber)
     {
         scheduleGuiPeriodicUpdate();
+    }
+
+    /** @inheritDoc */
+    @Override
+    public void onGarageDoorDetailsAvailable(ArrayList<OpenerObject> openers)
+    {
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if (openers == null)
+                {
+                    log.error(
+                            "Details could not be retrieved for the openers.");
+                    return;
+                }
+
+                if (openers.size() != garageDoorInstances.size())
+                {
+                    log.debug(
+                            "Change detected in number of actual openers vs. number of displayed openers");
+                    garageDoorInstances.clear();
+
+                    FormLayout fLayout = (FormLayout) getContentPane()
+                            .getLayout();
+                    while (fLayout.getRowCount() > 5)
+                    {
+                        fLayout.removeRow(1);
+                    }
+
+                    for (int index = 0; index < openers.size(); index++)
+                    {
+                        fLayout.insertRow(1, FormFactory.RELATED_GAP_ROWSPEC);
+                        fLayout.insertRow(1, FormFactory.DEFAULT_ROWSPEC);
+                        Container contentPane = getContentPane();
+
+                        GarageDoorInstanceAndListenerHolder holder = new GarageDoorInstanceAndListenerHolder();
+                        holder.instance = new GarageDoorInstance();
+                        holder.buttonListener = new ButtonChangeListener();
+                        holder.instance.buttonChange
+                                .addActionListener(holder.buttonListener);
+                        garageDoorInstances.add(holder);
+
+                        contentPane.add(holder.instance, CC.xy(1, 1));
+                    }
+                    getContentPane().setLayout(fLayout);
+                }
+
+                String toolTip = new String();
+                for (int index = 0; index < openers.size(); index++)
+                {
+                    GarageDoorInstanceAndListenerHolder gdi = garageDoorInstances
+                            .get(index);
+                    gdi.openerData = openers.get(index);
+
+                    gdi.instance.labelName.setText(gdi.openerData.name);
+                    gdi.instance.labelStatus
+                            .setText(gdi.openerData.state.toString());
+                    gdi.buttonListener
+                            .setSerialNumber(gdi.openerData.serialNumber);
+                    toolTip += (index > 0 ? " " : "") + gdi.openerData.name
+                            + ":" + gdi.openerData.state.toString();
+                }
+                GarageDoorGuiController.this.labelLastUpdatedDate
+                        .setText(new Date().toString());
+                NotificationUtils.setTrayIconTipText(toolTip);
+                updateDuration();
+            }
+        });
     }
 }

@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 import org.jibble.pircbot.PircBot;
 import com.google.common.base.Splitter;
@@ -119,33 +118,36 @@ public class GarageDoorBotController extends PircBot
             return;
         }
 
-        garageDoorOpenerDetails.stream().filter(o -> o.name.equals(name))
-                .forEach(opener -> {
-                    exService.execute(new Runnable()
-                    {
-                        /** @inheritDoc */
-                        @Override
-                        public void run()
+        if (garageDoorOpenerDetails != null)
+        {
+            garageDoorOpenerDetails.stream().filter(o -> o.name.equals(name))
+                    .forEach(opener -> {
+                        exService.execute(new Runnable()
                         {
-                            try
+                            /** @inheritDoc */
+                            @Override
+                            public void run()
                             {
-                                serialNumberToChannel.put(opener.serialNumber,
-                                        channel);
-                                serialNumberToSender.put(opener.serialNumber,
-                                        sender);
-                                MyQApiController
-                                        .switchOpenerState(opener.serialNumber);
+                                try
+                                {
+                                    serialNumberToChannel
+                                            .put(opener.serialNumber, channel);
+                                    serialNumberToSender
+                                            .put(opener.serialNumber, sender);
+                                    MyQApiController.switchOpenerState(
+                                            opener.serialNumber);
+                                }
+                                catch (Exception e)
+                                {
+                                    sendMessage(channel, sender
+                                            + ": there was an error executing the command for "
+                                            + name);
+                                }
                             }
-                            catch (Exception e)
-                            {
-                                sendMessage(channel, sender
-                                        + ": there was an error executing the command for "
-                                        + name);
-                            }
-                        }
+                        });
+                        return;
                     });
-                    return;
-                });
+        }
     }
 
     /**
@@ -236,30 +238,23 @@ public class GarageDoorBotController extends PircBot
             @Override
             public void run()
             {
-                SwingUtilities.invokeLater(new Runnable()
-                {
-                    /** @inheritDoc */
-                    @Override
-                    public void run()
-                    {
-                        log.debug("Status Update Timer Fired");
+                log.debug("Status Update Timer Fired");
 
-                        sendStatus(serialNumber, channel == null
+                sendStatus(serialNumber,
+                        channel == null
                                 ? GarageDoorConfigHolder.garageDoorConfig
                                         .getIrcChannel()
                                 : channel,
-                                sender == null
-                                        ? GarageDoorConfigHolder.garageDoorConfig
-                                                .getIrcDefaultSenderNickname()
-                                        : sender);
-                        count++;
-                        if (count == (GarageDoorConstants.STATUS_UPDATE_INTERVALS_TO_EXECUTE
-                                - 1))
-                        {
-                            cancel();
-                        }
-                    }
-                });
+                        sender == null
+                                ? GarageDoorConfigHolder.garageDoorConfig
+                                        .getIrcDefaultSenderNickname()
+                                : sender);
+                count++;
+                if (count == (GarageDoorConstants.STATUS_UPDATE_INTERVALS_TO_EXECUTE
+                        - 1))
+                {
+                    cancel();
+                }
             }
         };
         statusUpdateTimer.scheduleAtFixedRate(statusUpdateTimerTask,
